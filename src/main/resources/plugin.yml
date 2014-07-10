@@ -1,0 +1,3 @@
+name: Aangiix3-t2
+main: com.tenjava.entries.Aangiix3.t2.TenJava
+version: '${project.version}'
