@@ -27,12 +27,16 @@ Usage
 -----
 
 1. Install plugin
-2. Do things with it
-3. ???
+2. Set up MySQL in the config.yml
+3. Set Spawns with /duel [setspawn1|setspawn2]
+4. Ready to play. Right click any player to request a duel.
 
 Features
 -----
-- Duel with other players
 
-<!-- Hi, Aangiix3! This is the default README for every ten.java submission. -->
-<!-- We encourage you to edit this README with some information about your submission – keep in mind you'll be scored on documentation! -->
+- **Duel** other players with a simple right click
+- **Stats:** Save Stats in MySQL and check them inGame!
+- **Combat-Log:** No dueling while PvPing!
+- **Kits:** Define your own Kit and choose whether to use it or not!
+- **Messages:** Messages are customizable!
+- **Backup:** No need to throw away your items, armor or EXP to start a duel!

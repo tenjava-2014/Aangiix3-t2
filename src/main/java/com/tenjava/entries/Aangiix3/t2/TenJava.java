@@ -285,7 +285,7 @@ public class TenJava extends JavaPlugin implements Listener {
 		}
 		if (win) {
 			p.sendMessage(youlost);
-			p2.sendMessage(youwon);
+			p2.sendMessage(youwon.replaceAll("%pts", String.valueOf(pointsperwin)));
 			final DuelData data = d.getDuelData(), data2 = runningduels.get(p2.getName()).getDuelData();
 			data.addKill();
 			data.addPoints(pointsperwin);

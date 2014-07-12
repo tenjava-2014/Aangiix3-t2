@@ -16,7 +16,7 @@ messages:
     # The message when a user lost the duel
     youlost: 'You lost the duel!'
     # The message when a user wins the duel
-    youwon: 'You won the duel!'
+    youwon: 'You won the duel! + %pts points!'
     # More messages
 kit:
     # Will be ignored if (ownstuff: true)
