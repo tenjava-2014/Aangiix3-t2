@@ -9,19 +9,22 @@ messages:
     requestaccepted: 'You accepted the duel request.'
     # The message when a user accepts a request
     acceptedrequest: '%ply accepted your request.'
+    # The message when a user is in combat (if useincombat: false)
+    cannotuseincombat: 'You cannot duel while fighting.'
     # More messages
 kit:
     # (Will be ignored if ownstuff: true)
     # Armor
     armor:
-        helmet: 
-        chestplate:
-        leggings:
-        boots:
+        helmet: 298 1
+        chestplate: 299 1
+        leggings: 300 1
+        boots: 301 1
     # Inventory
     inventory:
-        -
-        - 
+        - 272 1
+        - 261 1
+        - 262 32
 settings:
     # Set the request timeout (in minutes)
     timeout: 2
@@ -32,6 +35,7 @@ settings:
     # Combat Time (in seconds)
     combattime: 6
 mysql:
+    # Used for Stats
     url: jdbc:mysql://localhost:3306/database
     username: user
     password: pw
