@@ -11,6 +11,8 @@ messages:
     acceptedrequest: '%ply accepted your request.'
     # The message when a user is in combat (if useincombat: false)
     cannotuseincombat: 'You cannot duel while fighting.'
+    # The message when a user is already in a duel
+    alreadyinduel: 'You are already in a duel!'
     # More messages
 kit:
     # (Will be ignored if ownstuff: true)

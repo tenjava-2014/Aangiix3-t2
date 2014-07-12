@@ -1,9 +1,7 @@
 package com.tenjava.entries.Aangiix3.t2;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.bukkit.ChatColor;
@@ -23,7 +21,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -37,10 +34,10 @@ public class TenJava extends JavaPlugin implements Listener {
 	private final Map<String, Long> tagged = new HashMap<String, Long>();
 	private final Map<String, Integer> backexp = new HashMap<String, Integer>();
 	private final Map<String, ItemStack[]> backarmor = new HashMap<String, ItemStack[]>(), backinv = new HashMap<String, ItemStack[]>();
-	private final List<Duel> runningduels = new ArrayList<Duel>();
+	private final Map<String, Duel> runningduels = new HashMap<String, Duel>();
 	private ItemStack[] armorkit, invkit;
 	private Location spawn1, spawn2;
-	private String duelrequest, alreadyrequested, requestsent, requestaccepted, acceptedrequest, cannotuseincombat;
+	private String duelrequest, alreadyrequested, requestsent, requestaccepted, acceptedrequest, cannotuseincombat, alreadyinduel;
 	private long timeout = 60000L, combattime = 6000L;
 	private boolean ownstuff = false, useincombat = false;
 
@@ -53,7 +50,7 @@ public class TenJava extends JavaPlugin implements Listener {
 	}
 	@Override
 	public void onDisable() {
-		for (final Duel d : runningduels) {
+		for (final Duel d : runningduels.values()) {
 			stopDuel(d);
 		}
 		tagged.clear();
@@ -82,13 +79,6 @@ public class TenJava extends JavaPlugin implements Listener {
 			return true;
 		}
 		return false;
-	}
-	@EventHandler
-	public void onJoin(final PlayerJoinEvent e) {
-	}
-	@EventHandler
-	public void onQuit(final PlayerQuitEvent e) {
-		requests.remove(e.getPlayer().getName());
 	}
 	/*
 	 * COMBAT CHECKS
@@ -120,6 +110,14 @@ public class TenJava extends JavaPlugin implements Listener {
 		return;
 	}
 	@EventHandler
+	public void onQuit(final PlayerQuitEvent e) {
+		final String pname = e.getPlayer().getName();
+		requests.remove(pname);
+		if (runningduels.containsKey(pname)) {
+			stopDuel(runningduels.get(pname));
+		}
+	}
+	@EventHandler
 	public void onEntityInteract(final PlayerInteractEntityEvent e) {
 		final Entity en = e.getRightClicked();
 		if (en instanceof Player) {
@@ -128,6 +126,8 @@ public class TenJava extends JavaPlugin implements Listener {
 			String opponent = requests.get(pname), opponent2 = requests.get(pname2);
 			if (!useincombat && tagged.containsKey(pname) && tagged.get(pname) + combattime >= System.currentTimeMillis()) {
 				p.sendMessage(cannotuseincombat);
+			} else if (runningduels.containsKey(pname)) {
+				p.sendMessage(alreadyinduel);
 			} else if (pname == (opponent2 = opponent2 == null ? "" : opponent2)) { // Already requested
 				p.sendMessage(alreadyrequested.replaceAll("%ply", pname2));
 			} else if (pname2 == (opponent = opponent == null ? "" : opponent)) { // Accept request
@@ -152,6 +152,7 @@ public class TenJava extends JavaPlugin implements Listener {
 		requestaccepted = ChatColor.translateAlternateColorCodes('&', config.getString("messages.requestaccepted"));
 		acceptedrequest = ChatColor.translateAlternateColorCodes('&', config.getString("messages.acceptedrequest"));
 		cannotuseincombat = ChatColor.translateAlternateColorCodes('&', config.getString("messages.cannotuseincombat"));
+		alreadyinduel = ChatColor.translateAlternateColorCodes('&', config.getString("messages.alreadyinduel"));
 		timeout = config.getInt("settings.timeout") * 60000L;
 		ownstuff = config.getBoolean("settings.ownstuff");
 		useincombat = config.getBoolean("settings.useincombat");
@@ -195,9 +196,17 @@ public class TenJava extends JavaPlugin implements Listener {
 		if (d2 == null) d2 = new DuelData(p2.getUniqueId(), p.getName(), 0, 0, 0);
 		p.teleport(spawn1);
 		p.teleport(spawn2);
-		// TODO: Vanish other players
+		for (final String s : runningduels.keySet()) { // Hide other duels
+			final Player pl = this.getServer().getPlayer(s);
+			p.hidePlayer(pl);
+			p2.hidePlayer(pl);
+			pl.hidePlayer(p);
+			pl.hidePlayer(p2);
+		}
 		equipPlayer(p);
 		equipPlayer(p2);
+		runningduels.put(p.getName(), new Duel(d, p2.getName()));
+		runningduels.put(p2.getName(), new Duel(d2, p.getName()));
 	}
 	private void equipPlayer(final Player p) {
 		p.closeInventory();
