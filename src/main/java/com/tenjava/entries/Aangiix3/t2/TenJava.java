@@ -63,9 +63,16 @@ public class TenJava extends JavaPlugin implements Listener {
 	@Override
 	public boolean onCommand(final CommandSender sender, final Command cmd, final String label, final String args[]) {
 		if (cmd.getName().equalsIgnoreCase("duel")) {
-			if (sender.hasPermission("duel.admin") == false || sender instanceof Player == false) {
+			if (sender instanceof Player == false) {
+				sender.sendMessage("§3Duel - Entry for TenJava by Aangiix3");
+			} else if (sender.hasPermission("duel.admin") == false) {
 				sender.sendMessage("§3Duel with other players: §6right click them!");
-				return true;
+				final DuelData d = db.loadPlayer(((Player)sender).getUniqueId());
+				sender.sendMessage(new String[] {
+						"§3Your Kills: §b" + d.getKills(),
+						"§3Your Deaths: §b" + d.getDeaths(),
+						"§3Your Points: §b" + d.getPoints()
+				});
 			} else if (args.length != 1) {
 				showMenu(sender);
 			} else if (args[0].equalsIgnoreCase("setspawn1")) {
@@ -76,7 +83,6 @@ public class TenJava extends JavaPlugin implements Listener {
 				this.reloadConfig();
 				loadConfig();
 				sender.sendMessage("§3Config has been reloaded.");
-				return true;
 			} else {
 				showMenu(sender);
 			}
@@ -264,6 +270,12 @@ public class TenJava extends JavaPlugin implements Listener {
 		if (win) {
 			p.sendMessage(youlost);
 			p2.sendMessage(youwon);
+			final DuelData data = d.getDuelData(), data2 = runningduels.get(p2.getName()).getDuelData();
+			data.addKill();
+			data.addPoints(10);
+			data2.addDeath();
+			db.savePlayer(data);
+			db.savePlayer(data2);
 			if (items) {
 				for (final ItemStack i : winitems) {
 					p2.getInventory().addItem(i);
