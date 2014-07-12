@@ -48,16 +48,20 @@ public class TenJava extends JavaPlugin implements Listener {
 			String opponent = requests.get(pname), opponent2 = requests.get(pname2);
 			if (pname == (opponent2 = opponent2 == null ? "" : opponent2)) { // Already requested
 				p.sendMessage(alreadyrequested.replaceAll("%ply", pname2));
-				return;
 			} else if (pname2 == (opponent = opponent == null ? "" : opponent)) { // Accept request
 				p.sendMessage(requestaccepted);
 				p2.sendMessage(acceptedrequest.replaceAll("%ply", pname));
 				requests.remove(pname);
+				DuelData d = db.loadPlayer(p.getUniqueId()), d2 = db.loadPlayer(p2.getUniqueId());
+				if (d == null) d = new DuelData(p.getUniqueId(), p.getName(), 0, 0, 0);
+				if (d2 == null) d2 = new DuelData(p2.getUniqueId(), p.getName(), 0, 0, 0);
+				startGame(d, d2);
 			} else { // Send request
 				p.sendMessage(requestsent);
 				p2.sendMessage(duelrequest.replaceAll("%ply", pname));
 				requests.put(pname2, pname);
 			}
+			return;
 		}
 	}
 	private void loadConfig() {
@@ -69,5 +73,8 @@ public class TenJava extends JavaPlugin implements Listener {
 		acceptedrequest = ChatColor.translateAlternateColorCodes('&', config.getString("messages.acceptedrequest"));
 		timeout = config.getInt("settings.timeout") * 1000L;
 		db = new MySQL(config.getString("mysql.url"), config.getString("mysql.username"), config.getString("mysql.password"));
+	}
+	private void startGame(final DuelData d, final DuelData d2) {
+
 	}
 }
