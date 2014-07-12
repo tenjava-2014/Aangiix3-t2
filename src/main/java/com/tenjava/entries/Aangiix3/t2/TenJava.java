@@ -34,6 +34,7 @@ public class TenJava extends JavaPlugin implements Listener {
 	private final Map<String, Long> tagged = new HashMap<String, Long>();
 	private final Map<String, Integer> backexp = new HashMap<String, Integer>();
 	private final Map<String, ItemStack[]> backarmor = new HashMap<String, ItemStack[]>(), backinv = new HashMap<String, ItemStack[]>();
+	private final Map<String, Location> backloc = new HashMap<String, Location>();
 	private final Map<String, Duel> runningduels = new HashMap<String, Duel>();
 	private ItemStack[] armorkit, invkit;
 	private Location spawn1, spawn2;
@@ -51,7 +52,7 @@ public class TenJava extends JavaPlugin implements Listener {
 	@Override
 	public void onDisable() {
 		for (final Duel d : runningduels.values()) {
-			stopDuel(d);
+			stopDuel(d, false);
 		}
 		tagged.clear();
 		db.kill();
@@ -114,7 +115,7 @@ public class TenJava extends JavaPlugin implements Listener {
 		final String pname = e.getPlayer().getName();
 		requests.remove(pname);
 		if (runningduels.containsKey(pname)) {
-			stopDuel(runningduels.get(pname));
+			stopDuel(runningduels.get(pname), false);
 		}
 	}
 	@EventHandler
@@ -194,6 +195,8 @@ public class TenJava extends JavaPlugin implements Listener {
 		DuelData d = db.loadPlayer(p.getUniqueId()), d2 = db.loadPlayer(p2.getUniqueId());
 		if (d == null) d = new DuelData(p.getUniqueId(), p.getName(), 0, 0, 0);
 		if (d2 == null) d2 = new DuelData(p2.getUniqueId(), p.getName(), 0, 0, 0);
+		equipPlayer(p);
+		equipPlayer(p2);
 		p.teleport(spawn1);
 		p.teleport(spawn2);
 		for (final String s : runningduels.keySet()) { // Hide other duels
@@ -203,18 +206,17 @@ public class TenJava extends JavaPlugin implements Listener {
 			pl.hidePlayer(p);
 			pl.hidePlayer(p2);
 		}
-		equipPlayer(p);
-		equipPlayer(p2);
-		runningduels.put(p.getName(), new Duel(d, p2.getName()));
-		runningduels.put(p2.getName(), new Duel(d2, p.getName()));
+		runningduels.put(p.getName(), new Duel(d, p.getUniqueId(), p2.getUniqueId()));
+		runningduels.put(p2.getName(), new Duel(d2, p2.getUniqueId(), p.getUniqueId()));
 	}
 	private void equipPlayer(final Player p) {
 		p.closeInventory();
 		if (ownstuff == false) {
 			final PlayerInventory pi = p.getInventory();
-			backinv.put(p.getName(), pi.getContents());
-			backarmor.put(p.getName(), pi.getArmorContents());
-			backexp.put(p.getName(), (int) p.getExp());
+			final String name = p.getName();
+			backinv.put(name, pi.getContents());
+			backarmor.put(name, pi.getArmorContents());
+			backexp.put(name, (int) p.getExp());
 			pi.clear();
 			pi.setArmorContents(null);
 			p.setExp(0F);
@@ -223,7 +225,11 @@ public class TenJava extends JavaPlugin implements Listener {
 			pi.setContents(invkit);
 			p.updateInventory();
 		}
+		backloc.put(p.getName(), p.getLocation());
 		// Heal, feed and deactivate anything unfair
+		if (p.isInsideVehicle()) {
+			p.leaveVehicle();
+		}
 		for (final PotionEffect pe : p.getActivePotionEffects()) {
 			p.removePotionEffect(pe.getType());
 		}
@@ -235,8 +241,40 @@ public class TenJava extends JavaPlugin implements Listener {
 		p.setGameMode(GameMode.ADVENTURE);
 		// TODO: Scoreboard
 	}
-	private void stopDuel(final Duel d) {
+	private void stopDuel(final Duel d, final boolean win) {
+		final Player p = this.getServer().getPlayer(d.getUUID()), p2 = this.getServer().getPlayer(d.getOpponent());
+		resetPlayer(p);
+		resetPlayer(p2);
+		if (win) {
+			p2.getInventory().addItem(); // TODO: Win Items
+		}
 		return;
+	}
+	private void resetPlayer(final Player p) {
+		final String name = p.getName();
+		final PlayerInventory pi = p.getInventory();
+		if (ownstuff == false) {
+			final ItemStack[] inv = backinv.get(name);
+			final Integer exp = backexp.get(name);
+			p.giveExp(exp == null ? 0 : exp);
+			pi.setArmorContents(backarmor.get(name));
+			pi.setContents(inv == null ? new ItemStack[0] : inv);
+		}
+		if (p.isInsideVehicle()) {
+			p.leaveVehicle();
+		}
+		p.teleport(backloc.get(name));
+		p.setHealth(20D);
+		p.setFoodLevel(20);
+		p.setFireTicks(0);
+		p.setGameMode(GameMode.SURVIVAL);
+		for (final PotionEffect pe : p.getActivePotionEffects()) {
+			p.removePotionEffect(pe.getType());
+		}
+		backarmor.remove(name);
+		backloc.remove(name);
+		backinv.remove(name);
+		backexp.remove(name);
 	}
 	private void showMenu(final CommandSender sender) {
 		sender.sendMessage(new String[] {

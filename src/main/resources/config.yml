@@ -27,6 +27,10 @@ kit:
         - 272 1
         - 261 1
         - 262 32
+win:
+   -
+   -
+   -
 settings:
     # Set the request timeout (in minutes)
     timeout: 2
