@@ -129,14 +129,15 @@ public class TenJava extends JavaPlugin implements Listener {
 		useincombat = config.getBoolean("settings.useincombat");
 		combattime = config.getInt("settings.combattime") * 1000L;
 		armorkit = new ItemStack[4];
-		short count = 0;
+		short count = 3;
 		for (final String s : Arrays.asList("kit.armor.helmet", "kit.armor.chestplate", "kit.armor.leggings", "kit.armor.boots")) {
 			armorkit[count] = getItemStack(config.getString(s));
-			count++;
+			count--;
 		}
-		count = 0;
+		invkit = new ItemStack[36];
 		for (final String s : config.getStringList("kit.inventory")) {
 			invkit[count] = getItemStack(s);
+			count++;
 		}
 		db = new MySQL(config.getString("mysql.url"), config.getString("mysql.username"), config.getString("mysql.password"));
 	}
@@ -150,7 +151,7 @@ public class TenJava extends JavaPlugin implements Listener {
 			value = Short.parseShort(split2[1]);
 		}
 		try {
-			return new ItemStack(Integer.parseInt(itemID), Integer.parseInt(split1[1], value));
+			return new ItemStack(Integer.parseInt(itemID), Integer.parseInt(split1[1]), value);
 		} catch (final Exception ex) {
 			return new ItemStack(Material.AIR);
 		}
@@ -159,8 +160,8 @@ public class TenJava extends JavaPlugin implements Listener {
 		DuelData d = db.loadPlayer(p.getUniqueId()), d2 = db.loadPlayer(p2.getUniqueId());
 		if (d == null) d = new DuelData(p.getUniqueId(), p.getName(), 0, 0, 0);
 		if (d2 == null) d2 = new DuelData(p2.getUniqueId(), p.getName(), 0, 0, 0);
-		p.teleport(spawn1);
-		p.teleport(spawn2);
+		//p.teleport(spawn1);
+		//p.teleport(spawn2);
 		equipPlayer(p);
 		equipPlayer(p2);
 	}
