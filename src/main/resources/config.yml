@@ -1,7 +1,14 @@
 messages:
-    # The message when a user sends a duel request
+    # The message to a user when a user sends a duel request
     duelrequest: '%ply has sent you a duel request. Accept it by right clicking him.'
-    
+    # The message when a user sends a duel request
+    requestsent: 'The duel request has been sent.'
+    # The message when a user sends a request twice
+    alreadyrequested: 'You already sent %ply a request!'
+    # The message when a request gets accepted
+    requestaccepted = '%ply accepted your request.'
+    # The message when a user accepts a request
+	acceptedrequest = 'You accepted the duel request.'
     # More messages
 settings:
     # Set the timeout (in seconds)

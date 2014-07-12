@@ -3,6 +3,7 @@ package com.tenjava.entries.Aangiix3.t2;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.bukkit.ChatColor;
 import org.bukkit.Server;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Entity;
@@ -16,7 +17,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class TenJava extends JavaPlugin implements Listener {
 	final Map<String, String> requests = new HashMap<String, String>();
-	private String duelrequest = "%ply has sent you a duel request. Accept it by right clicking him.";
+	private String duelrequest, alreadyrequested, requestsent, requestaccepted, acceptedrequest;
 	private long timeout = 60000L;
 
 	@Override
@@ -40,19 +41,30 @@ public class TenJava extends JavaPlugin implements Listener {
 	public void onEntityInteract(final PlayerInteractEntityEvent e) {
 		final Entity en = e.getRightClicked();
 		if (en instanceof Player) {
-			final Player p = (Player) en;
-			if (requests.containsKey(p.getName())) {
-				// TODO
+			final Player p = e.getPlayer(), p2 = (Player) en;
+			final String pname = p.getName(), pname2 = p2.getName();
+			String opponent = requests.get(pname2);
+			if (pname == (opponent = opponent == null ? "" : opponent)) { // Already clicked
+				p.sendMessage(alreadyrequested.replaceAll("%ply", pname2));
+				return;
+			} else if (requests.containsValue(pname2) && opponent == pname) { // Already requested
+				p.sendMessage(requestaccepted);
+				p2.sendMessage(acceptedrequest.replaceAll("%ply", pname));
+				requests.remove(pname);
 			} else {
-				p.sendMessage(duelrequest);
-				requests.put(p.getName(), e.getPlayer().getName());
+				p.sendMessage(requestsent);
+				p2.sendMessage(duelrequest.replaceAll("%ply", pname));
+				requests.put(pname2, pname);
 			}
-
 		}
 	}
 	private void loadConfig() {
 		final FileConfiguration config = this.getConfig();
-		duelrequest = config.getString("duelrequest");
-		timeout = config.getInt("timeout") * 1000L;
+		duelrequest = ChatColor.translateAlternateColorCodes('&', config.getString("messages.duelrequest"));
+		requestsent = ChatColor.translateAlternateColorCodes('&', config.getString("messages.requestsent"));
+		alreadyrequested = ChatColor.translateAlternateColorCodes('&', config.getString("messages.alreadyrequested"));
+		requestaccepted = ChatColor.translateAlternateColorCodes('&', config.getString("messages.requestaccepted"));
+		acceptedrequest = ChatColor.translateAlternateColorCodes('&', config.getString("messages.acceptedrequest"));
+		timeout = config.getInt("settings.timeout") * 1000L;
 	}
 }
