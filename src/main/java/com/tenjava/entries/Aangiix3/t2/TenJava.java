@@ -1,10 +1,13 @@
 package com.tenjava.entries.Aangiix3.t2;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.Server;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -20,13 +23,18 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionEffect;
 
 public class TenJava extends JavaPlugin implements Listener {
 	private MySQL db;
 	private final Map<String, String> requests = new HashMap<String, String>();
 	private final Map<String, Long> timeouts = new HashMap<String, Long>();
 	private final Map<String, Long> tagged = new HashMap<String, Long>();
+	private final Map<String, Integer> backexp = new HashMap<String, Integer>();
+	private final Map<String, ItemStack[]> backarmor = new HashMap<String, ItemStack[]>(), backinv = new HashMap<String, ItemStack[]>();
+	private final List<Duel> runningduels = new ArrayList<Duel>();
 	private ItemStack[] armorkit, invkit;
 	private String duelrequest, alreadyrequested, requestsent, requestaccepted, acceptedrequest, cannotuseincombat;
 	private long timeout = 60000L, combattime = 6000L;
@@ -41,6 +49,9 @@ public class TenJava extends JavaPlugin implements Listener {
 	}
 	@Override
 	public void onDisable() {
+		for (final Duel d : runningduels) {
+			stopDuel(d);
+		}
 		tagged.clear();
 		db.kill();
 	}
@@ -95,10 +106,7 @@ public class TenJava extends JavaPlugin implements Listener {
 				p.sendMessage(requestaccepted);
 				p2.sendMessage(acceptedrequest.replaceAll("%ply", pname));
 				requests.remove(pname);
-				DuelData d = db.loadPlayer(p.getUniqueId()), d2 = db.loadPlayer(p2.getUniqueId());
-				if (d == null) d = new DuelData(p.getUniqueId(), p.getName(), 0, 0, 0);
-				if (d2 == null) d2 = new DuelData(p2.getUniqueId(), p.getName(), 0, 0, 0);
-				startGame(d, d2);
+				startDuel(p, p2);
 			} else { // Send request
 				p.sendMessage(requestsent);
 				p2.sendMessage(duelrequest.replaceAll("%ply", pname));
@@ -147,7 +155,43 @@ public class TenJava extends JavaPlugin implements Listener {
 			return new ItemStack(Material.AIR);
 		}
 	}
-	private void startGame(final DuelData d, final DuelData d2) {
-
+	private void startDuel(final Player p, final Player p2) {
+		DuelData d = db.loadPlayer(p.getUniqueId()), d2 = db.loadPlayer(p2.getUniqueId());
+		if (d == null) d = new DuelData(p.getUniqueId(), p.getName(), 0, 0, 0);
+		if (d2 == null) d2 = new DuelData(p2.getUniqueId(), p.getName(), 0, 0, 0);
+		p.teleport(spawn1);
+		p.teleport(spawn2);
+		equipPlayer(p);
+		equipPlayer(p2);
+	}
+	private void equipPlayer(final Player p) {
+		p.closeInventory();
+		if (ownstuff == false) {
+			final PlayerInventory pi = p.getInventory();
+			backinv.put(p.getName(), pi.getContents());
+			backarmor.put(p.getName(), pi.getArmorContents());
+			backexp.put(p.getName(), (int) p.getExp());
+			pi.clear();
+			pi.setArmorContents(null);
+			p.setExp(0F);
+			p.setLevel(0);
+			pi.setArmorContents(armorkit);
+			pi.setContents(invkit);
+			p.updateInventory();
+		}
+		// Heal, feed and deactivate anything unfair
+		for (final PotionEffect pe : p.getActivePotionEffects()) {
+			p.removePotionEffect(pe.getType());
+		}
+		p.setHealth(20D);
+		p.setFoodLevel(20);
+		p.setFireTicks(0);
+		p.setAllowFlight(false);
+		p.setFlying(false);
+		p.setGameMode(GameMode.ADVENTURE);
+		// TODO: Scoreboard
+	}
+	private void stopDuel(final Duel d) {
+		return;
 	}
 }
