@@ -35,8 +35,6 @@ winitems:
     # Will be ignored if (items: false)
     - 264 5
 settings:
-    # Set the request timeout (in minutes)
-    timeout: 2
     # (false = kit | true = own stuff)
     ownstuff: false
     # Set duel use in combat
@@ -45,6 +43,8 @@ settings:
     combattime: 6
     # Should you win items?
     items: true
+    # Points per win
+    pointsperwin: 10
 mysql:
     # Used for Stats
     url: jdbc:mysql://localhost:3306/database

@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
@@ -15,12 +16,14 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Arrow;
+import org.bukkit.entity.Damageable;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.ThrownPotion;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -31,18 +34,18 @@ import org.bukkit.potion.PotionEffect;
 
 public class TenJava extends JavaPlugin implements Listener {
 	private MySQL db;
-	private final List<ItemStack> winitems = new ArrayList<ItemStack>();
 	private final Map<String, String> requests = new HashMap<String, String>();
-	private final Map<String, Long> timeouts = new HashMap<String, Long>();
 	private final Map<String, Long> tagged = new HashMap<String, Long>();
 	private final Map<String, Integer> backexp = new HashMap<String, Integer>();
 	private final Map<String, ItemStack[]> backarmor = new HashMap<String, ItemStack[]>(), backinv = new HashMap<String, ItemStack[]>();
 	private final Map<String, Location> backloc = new HashMap<String, Location>();
 	private final Map<String, Duel> runningduels = new HashMap<String, Duel>();
+	private final List<ItemStack> winitems = new ArrayList<ItemStack>();
 	private ItemStack[] armorkit, invkit;
 	private Location spawn1, spawn2;
 	private String duelrequest, alreadyrequested, requestsent, requestaccepted, acceptedrequest, cannotuseincombat, alreadyinduel, youwon, youlost;
-	private long timeout = 60000L, combattime = 6000L;
+	private long combattime = 6000L;
+	private short pointsperwin = 10;
 	private boolean ownstuff = false, useincombat = false, items = false;
 
 	@Override
@@ -67,7 +70,9 @@ public class TenJava extends JavaPlugin implements Listener {
 				sender.sendMessage("§3Duel - Entry for TenJava by Aangiix3");
 			} else if (sender.hasPermission("duel.admin") == false) {
 				sender.sendMessage("§3Duel with other players: §6right click them!");
-				final DuelData d = db.loadPlayer(((Player)sender).getUniqueId());
+				final UUID uuid = ((Player)sender).getUniqueId();
+				DuelData d = db.loadPlayer(uuid);
+				if (d == null) d = new DuelData(uuid, sender.getName(), 0, 0, 0);
 				sender.sendMessage(new String[] {
 						"§3Your Kills: §b" + d.getKills(),
 						"§3Your Deaths: §b" + d.getDeaths(),
@@ -90,20 +95,25 @@ public class TenJava extends JavaPlugin implements Listener {
 		}
 		return false;
 	}
-	/*
-	 * COMBAT CHECKS
-	 */
+
 	@EventHandler
-	public void onDeath(final PlayerDeathEvent e) { // COMBAT CHECK
+	public void onDeath(final PlayerDeathEvent e) {
 		if (useincombat) return;
 		tagged.remove(e.getEntity().getName());
 	}
+	@EventHandler
+	public void onQuit(final PlayerQuitEvent e) {
+		final String pname = e.getPlayer().getName();
+		requests.remove(pname);
+		if (runningduels.containsKey(pname)) {
+			stopDuel(runningduels.get(pname), false);
+		}
+	}
 	@EventHandler(ignoreCancelled = true)
-	public void onEntityDamage(final EntityDamageByEntityEvent e) { // COMBAT CHECK
+	public void onEntityDamage(final EntityDamageByEntityEvent e) {
 		if (useincombat) return;
 		final Entity en = e.getEntity();
 		if (en instanceof Player) {
-			final Player p = (Player) en;
 			final Entity en2 = e.getDamager();
 			Player damager = null;
 			if (en2 instanceof Player) {
@@ -115,16 +125,23 @@ public class TenJava extends JavaPlugin implements Listener {
 			}
 			if (damager == null) return;
 			tagged.put(damager.getName(), System.currentTimeMillis());
-			tagged.put(p.getName(), System.currentTimeMillis());
+			tagged.put(((Player)en).getName(), System.currentTimeMillis());
 		}
 		return;
 	}
-	@EventHandler
-	public void onQuit(final PlayerQuitEvent e) {
-		final String pname = e.getPlayer().getName();
-		requests.remove(pname);
-		if (runningduels.containsKey(pname)) {
-			stopDuel(runningduels.get(pname), false);
+	@EventHandler(ignoreCancelled = true)
+	public void onDamage(final EntityDamageEvent e) {
+		if (e.getEntity() instanceof Player) {
+			if (e.getCause() == EntityDamageEvent.DamageCause.FALL) {
+				e.setCancelled(true);
+				return;
+			}
+			final Player p = (Player) e.getEntity();
+			if (runningduels.containsKey(p.getName()) && ((Damageable)p).getHealth() * 1.5D - e.getDamage() <= 0D) {
+				e.setCancelled(true);
+				stopDuel(runningduels.get(p.getName()), true);
+				return;
+			}
 		}
 	}
 	@EventHandler
@@ -149,7 +166,6 @@ public class TenJava extends JavaPlugin implements Listener {
 				p.sendMessage(requestsent);
 				p2.sendMessage(duelrequest.replaceAll("%ply", pname));
 				requests.put(pname2, pname);
-				timeouts.put(pname2, System.currentTimeMillis() + timeout);
 			}
 			return;
 		}
@@ -165,11 +181,11 @@ public class TenJava extends JavaPlugin implements Listener {
 		alreadyinduel = ChatColor.translateAlternateColorCodes('&', config.getString("messages.alreadyinduel"));
 		youwon = ChatColor.translateAlternateColorCodes('&', config.getString("messages.youwon"));
 		youlost = ChatColor.translateAlternateColorCodes('&', config.getString("messages.youlost"));
-		timeout = config.getInt("settings.timeout") * 60000L;
 		ownstuff = config.getBoolean("settings.ownstuff");
 		useincombat = config.getBoolean("settings.useincombat");
 		combattime = config.getInt("settings.combattime") * 1000L;
 		items = config.getBoolean("settings.items");
+		pointsperwin = (short) config.getInt("settings.pointsperwin");
 		armorkit = new ItemStack[4];
 		short count = 3;
 		for (final String s : Arrays.asList("kit.armor.helmet", "kit.armor.chestplate", "kit.armor.leggings", "kit.armor.boots")) {
@@ -272,7 +288,7 @@ public class TenJava extends JavaPlugin implements Listener {
 			p2.sendMessage(youwon);
 			final DuelData data = d.getDuelData(), data2 = runningduels.get(p2.getName()).getDuelData();
 			data.addKill();
-			data.addPoints(10);
+			data.addPoints(pointsperwin);
 			data2.addDeath();
 			db.savePlayer(data);
 			db.savePlayer(data2);
@@ -283,6 +299,8 @@ public class TenJava extends JavaPlugin implements Listener {
 				p2.updateInventory();
 			}
 		}
+		runningduels.remove(p.getName());
+		runningduels.remove(p2.getName());
 		return;
 	}
 	private void resetPlayer(final Player p) {
@@ -313,12 +331,12 @@ public class TenJava extends JavaPlugin implements Listener {
 	}
 	private void showMenu(final CommandSender sender) {
 		sender.sendMessage(new String[] {
-				"§7============= §3Duel §7============",
+				"§3§m----------[§6§l DUEL§3 §m]----------",
 				"§cAdmin Commands:",
 				"§3/duel setspawn1: §7Set Duel-Spawn 1",
 				"§3/duel setspawn2: §7Set Duel-Spawn 2",
 				"§3/duel reload: §7Reload config",
-				"§7=============================="
+				"§3§m----------------------------"
 		});
 	}
 	private void setSpawn(final Player p, final boolean first) {
