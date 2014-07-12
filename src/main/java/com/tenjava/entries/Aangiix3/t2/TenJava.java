@@ -25,6 +25,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
@@ -170,6 +172,20 @@ public class TenJava extends JavaPlugin implements Listener {
 			return;
 		}
 	}
+	@EventHandler
+	public void onClickEvent(final InventoryClickEvent e) {
+		if (runningduels.containsKey(e.getWhoClicked().getName())) {
+			e.setCancelled(true);
+		}
+		return;
+	}
+	@EventHandler
+	public void onDrop(final PlayerDropItemEvent e) {
+		if (runningduels.containsKey(e.getPlayer().getName())) {
+			e.setCancelled(true);
+		}
+		return;
+	}
 	private void loadConfig() {
 		final FileConfiguration config = this.getConfig();
 		duelrequest = ChatColor.translateAlternateColorCodes('&', config.getString("messages.duelrequest"));
@@ -270,7 +286,6 @@ public class TenJava extends JavaPlugin implements Listener {
 		p.setAllowFlight(false);
 		p.setFlying(false);
 		p.setGameMode(GameMode.ADVENTURE);
-		// TODO: Scoreboard
 	}
 	private void stopDuel(final Duel d, final boolean win) {
 		final Player p = this.getServer().getPlayer(d.getUUID()), p2 = this.getServer().getPlayer(d.getOpponent());
