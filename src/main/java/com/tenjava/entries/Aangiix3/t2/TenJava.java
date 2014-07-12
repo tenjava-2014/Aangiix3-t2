@@ -16,7 +16,8 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class TenJava extends JavaPlugin implements Listener {
-	final Map<String, String> requests = new HashMap<String, String>();
+	private MySQL db;
+	private final Map<String, String> requests = new HashMap<String, String>();
 	private String duelrequest, alreadyrequested, requestsent, requestaccepted, acceptedrequest;
 	private long timeout = 60000L;
 
@@ -29,6 +30,7 @@ public class TenJava extends JavaPlugin implements Listener {
 	}
 	@Override
 	public void onDisable() {
+		db.kill();
 	}
 	@EventHandler
 	public void onJoin(final PlayerJoinEvent e) {
@@ -44,14 +46,14 @@ public class TenJava extends JavaPlugin implements Listener {
 			final Player p = e.getPlayer(), p2 = (Player) en;
 			final String pname = p.getName(), pname2 = p2.getName();
 			String opponent = requests.get(pname), opponent2 = requests.get(pname2);
-			if (pname == (opponent2 = opponent2 == null ? "" : opponent2)) { // Already clicked
+			if (pname == (opponent2 = opponent2 == null ? "" : opponent2)) { // Already requested
 				p.sendMessage(alreadyrequested.replaceAll("%ply", pname2));
 				return;
-			} else if (pname2 == (opponent = opponent == null ? "" : opponent)) { // Already requested
+			} else if (pname2 == (opponent = opponent == null ? "" : opponent)) { // Accept request
 				p.sendMessage(requestaccepted);
 				p2.sendMessage(acceptedrequest.replaceAll("%ply", pname));
 				requests.remove(pname);
-			} else {
+			} else { // Send request
 				p.sendMessage(requestsent);
 				p2.sendMessage(duelrequest.replaceAll("%ply", pname));
 				requests.put(pname2, pname);
@@ -66,5 +68,6 @@ public class TenJava extends JavaPlugin implements Listener {
 		requestaccepted = ChatColor.translateAlternateColorCodes('&', config.getString("messages.requestaccepted"));
 		acceptedrequest = ChatColor.translateAlternateColorCodes('&', config.getString("messages.acceptedrequest"));
 		timeout = config.getInt("settings.timeout") * 1000L;
+		db = new MySQL(config.getString("mysql.url"), config.getString("mysql.username"), config.getString("mysql.password"));
 	}
 }
