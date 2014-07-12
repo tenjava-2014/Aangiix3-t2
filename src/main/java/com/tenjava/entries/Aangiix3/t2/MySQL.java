@@ -23,7 +23,7 @@ public class MySQL {
 					"points INT" +
 					")");
 		} catch (final Exception ex) {
-			System.err.println("Error loading the MySQL Database!");
+			System.err.println("> Error loading the MySQL Database!");
 			return;
 		}
 	}

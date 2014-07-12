@@ -169,8 +169,10 @@ public class TenJava extends JavaPlugin implements Listener {
 		}
 		if (db != null) db.kill();
 		db = new MySQL(config.getString("mysql.url"), config.getString("mysql.username"), config.getString("mysql.password"));
-		spawn1 = config.getVector("locations.spawn1.coords").toLocation(this.getServer().getWorld(config.getString("locations.spawn1.w")), (float) config.getDouble("locations.spawn1.yaw"), (float) config.getDouble("locations.spawn1.pitch"));
-		spawn2 = config.getVector("locations.spawn2.coords").toLocation(this.getServer().getWorld(config.getString("locations.spawn2.w")), (float) config.getDouble("locations.spawn2.yaw"), (float) config.getDouble("locations.spawn2.pitch"));
+		if (config.getString("locations.spawn1.w") != null) {
+			spawn1 = config.getVector("locations.spawn1.coords").toLocation(this.getServer().getWorld(config.getString("locations.spawn1.w")), (float) config.getDouble("locations.spawn1.yaw"), (float) config.getDouble("locations.spawn1.pitch"));
+			spawn2 = config.getVector("locations.spawn2.coords").toLocation(this.getServer().getWorld(config.getString("locations.spawn2.w")), (float) config.getDouble("locations.spawn2.yaw"), (float) config.getDouble("locations.spawn2.pitch"));
+		}
 	}
 	private ItemStack getItemStack(final String s) {
 		short value = 0;
@@ -241,13 +243,13 @@ public class TenJava extends JavaPlugin implements Listener {
 		final FileConfiguration config = this.getConfig();
 		if (first) {
 			spawn1 = p.getLocation();
-			config.set("locations.spawn1.w", spawn1.getWorld());
+			config.set("locations.spawn1.w", spawn1.getWorld().getName());
 			config.set("locations.spawn1.coords", spawn1.toVector());
 			config.set("locations.spawn1.yaw", spawn1.getYaw());
 			config.set("locations.spawn1.pitch", spawn1.getPitch());
 		} else {
 			spawn2 = p.getLocation();
-			config.set("locations.spawn2.w", spawn2.getWorld());
+			config.set("locations.spawn2.w", spawn2.getWorld().getName());
 			config.set("locations.spawn2.coords", spawn2.toVector());
 			config.set("locations.spawn2.yaw", spawn2.getYaw());
 			config.set("locations.spawn2.pitch", spawn2.getPitch());
