@@ -1,3 +1,6 @@
-name: Aangiix3-t2
+name: TenJava - Aangiix3
 main: com.tenjava.entries.Aangiix3.t2.TenJava
 version: '${project.version}'
+commands:
+    duel:
+        description: Duel Command

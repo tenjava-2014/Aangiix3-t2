@@ -8,8 +8,11 @@ import java.util.Map;
 
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Server;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
@@ -36,6 +39,7 @@ public class TenJava extends JavaPlugin implements Listener {
 	private final Map<String, ItemStack[]> backarmor = new HashMap<String, ItemStack[]>(), backinv = new HashMap<String, ItemStack[]>();
 	private final List<Duel> runningduels = new ArrayList<Duel>();
 	private ItemStack[] armorkit, invkit;
+	private Location spawn1, spawn2;
 	private String duelrequest, alreadyrequested, requestsent, requestaccepted, acceptedrequest, cannotuseincombat;
 	private long timeout = 60000L, combattime = 6000L;
 	private boolean ownstuff = false, useincombat = false;
@@ -54,6 +58,30 @@ public class TenJava extends JavaPlugin implements Listener {
 		}
 		tagged.clear();
 		db.kill();
+	}
+	@Override
+	public boolean onCommand(final CommandSender sender, final Command cmd, final String label, final String args[]) {
+		if (cmd.getName().equalsIgnoreCase("duel")) {
+			if (sender.hasPermission("duel.admin") == false || sender instanceof Player == false) {
+				sender.sendMessage("§3Duel with other players: §6right click them!");
+				return true;
+			} else if (args.length != 1) {
+				showMenu(sender);
+			} else if (args[0].equalsIgnoreCase("setspawn1")) {
+				setSpawn((Player)sender, false);
+			} else if (args[0].equalsIgnoreCase("setspawn2")) {
+				setSpawn((Player)sender, true);
+			} else if (args[0].equalsIgnoreCase("reload")) {
+				this.reloadConfig();
+				loadConfig();
+				sender.sendMessage("§3Config has been reloaded.");
+				return true;
+			} else {
+				showMenu(sender);
+			}
+			return true;
+		}
+		return false;
 	}
 	@EventHandler
 	public void onJoin(final PlayerJoinEvent e) {
@@ -136,9 +164,10 @@ public class TenJava extends JavaPlugin implements Listener {
 		}
 		invkit = new ItemStack[36];
 		for (final String s : config.getStringList("kit.inventory")) {
-			invkit[count] = getItemStack(s);
 			count++;
+			invkit[count] = getItemStack(s);
 		}
+		if (db != null) db.kill();
 		db = new MySQL(config.getString("mysql.url"), config.getString("mysql.username"), config.getString("mysql.password"));
 	}
 	private ItemStack getItemStack(final String s) {
@@ -160,8 +189,9 @@ public class TenJava extends JavaPlugin implements Listener {
 		DuelData d = db.loadPlayer(p.getUniqueId()), d2 = db.loadPlayer(p2.getUniqueId());
 		if (d == null) d = new DuelData(p.getUniqueId(), p.getName(), 0, 0, 0);
 		if (d2 == null) d2 = new DuelData(p2.getUniqueId(), p.getName(), 0, 0, 0);
-		//p.teleport(spawn1);
-		//p.teleport(spawn2);
+		p.teleport(spawn1);
+		p.teleport(spawn2);
+		// TODO: Vanish other players
 		equipPlayer(p);
 		equipPlayer(p2);
 	}
@@ -194,5 +224,29 @@ public class TenJava extends JavaPlugin implements Listener {
 	}
 	private void stopDuel(final Duel d) {
 		return;
+	}
+	private void showMenu(final CommandSender sender) {
+		sender.sendMessage(new String[] {
+				"§7============ §3Duel §7===========",
+				"§cAdmin Commands:",
+				"§3/duel setspawn1: §7Set Duel-Spawn 1",
+				"§3/duel setspawn2: §7Set Duel-Spawn 2",
+				"§3/duel reload: §7Reload config",
+				"§7================================"
+		});
+	}
+	private void setSpawn(final Player p, final boolean first) {
+		final FileConfiguration config = this.getConfig();
+		if (first) {
+			spawn1 = p.getLocation();
+			config.set("locations.spawn1.coords", spawn1.toVector());
+			config.set("locations.spawn1.yaw", spawn1.getYaw());
+			config.set("locations.spawn1.pitch", spawn1.getPitch());
+		} else {
+			spawn2 = p.getLocation();
+			config.set("locations.spawn2.coords", spawn2.toVector());
+			config.set("locations.spawn2.yaw", spawn2.getYaw());
+			config.set("locations.spawn2.pitch", spawn2.getPitch());
+		}
 	}
 }
