@@ -1,39 +1,3 @@
-messages:
-    # The message to a user when a user sends a duel request
-    duelrequest: '%ply has sent you a duel request. Accept it by right clicking him.'
-    # The message when a user sends a duel request
-    requestsent: 'The duel request has been sent.'
-    # The message when a user sends a request twice
-    alreadyrequested: 'You already sent %ply a request!'
-    # The message when a request gets accepted
-    requestaccepted: 'You accepted the duel request.'
-    # The message when a user accepts a request
-    acceptedrequest: '%ply accepted your request.'
-    # The message when a user is in combat (if useincombat: false)
-    cannotuseincombat: 'You cannot duel while fighting.'
-    # The message when a user is already in a duel
-    alreadyinduel: 'You are already in a duel!'
-    # The message when a user lost the duel
-    youlost: 'You lost the duel!'
-    # The message when a user wins the duel
-    youwon: 'You won the duel! + %pts points!'
-    # More messages
-kit:
-    # Will be ignored if (ownstuff: true)
-    # Armor
-    armor:
-        helmet: 298 1
-        chestplate: 299 1
-        leggings: 300 1
-        boots: 301 1
-    # Inventory
-    inventory:
-        - 272 1
-        - 261 1
-        - 262 32
-winitems:
-    # Will be ignored if (items: false)
-    - 264 5
 settings:
     # (false = kit | true = own stuff)
     ownstuff: false
@@ -50,3 +14,36 @@ mysql:
     url: jdbc:mysql://localhost:3306/database
     username: user
     password: pw
+kit: # Will be ignored if (ownstuff: true)
+    # Armor
+    armor:
+        helmet: 298 1
+        chestplate: 299 1
+        leggings: 300 1
+        boots: 301 1
+    # Inventory
+    inventory:
+        - 272 1
+        - 261 1
+        - 262 32
+winitems: # Will be ignored if (items: false)
+    - 264 5
+messages:
+    # The message to a user when a user sends a duel request
+    duelrequest: '§6%ply §3has sent you a duel request. Accept it by §6right clicking §3him.'
+    # The message when a user sends a duel request
+    requestsent: '§3The duel request has been sent.'
+    # The message when a user sends a request twice
+    alreadyrequested: '§cYou already sent %ply a request!'
+    # The message when a request gets accepted
+    requestaccepted: '§3You accepted the duel request.'
+    # The message when a user accepts a request
+    acceptedrequest: '§6%ply §3accepted your request.'
+    # The message when a user is in combat (if useincombat: false)
+    cannotuseincombat: '§cYou cannot duel while fighting.'
+    # The message when a user is already in a duel
+    alreadyinduel: '§cYou are already in a duel!'
+    # The message when a user lost the duel
+    youlost: '§3You lost the duel!'
+    # The message when a user wins the duel
+    youwon: '§3You won the duel! §6+ %pts points!'

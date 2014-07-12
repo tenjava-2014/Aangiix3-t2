@@ -34,9 +34,13 @@ Usage
 Features
 -----
 
-- **Duel** other players with a simple right click
+- **Duel:** Duel other players with a simple right click
 - **Stats:** Save Stats in MySQL and check them inGame!
 - **Combat-Log:** No dueling while PvPing!
 - **Kits:** Define your own Kit and choose whether to use it or not!
 - **Messages:** Messages are customizable!
 - **Backup:** No need to throw away your items, armor or EXP to start a duel!
+
+Screenshots
+-----
+
