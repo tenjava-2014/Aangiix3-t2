@@ -229,12 +229,12 @@ public class TenJava extends JavaPlugin implements Listener {
 	}
 	private void showMenu(final CommandSender sender) {
 		sender.sendMessage(new String[] {
-				"§7============ §3Duel §7===========",
+				"§7============= §3Duel §7============",
 				"§cAdmin Commands:",
 				"§3/duel setspawn1: §7Set Duel-Spawn 1",
 				"§3/duel setspawn2: §7Set Duel-Spawn 2",
 				"§3/duel reload: §7Reload config",
-				"§7================================"
+				"§7=============================="
 		});
 	}
 	private void setSpawn(final Player p, final boolean first) {
@@ -252,5 +252,7 @@ public class TenJava extends JavaPlugin implements Listener {
 			config.set("locations.spawn2.yaw", spawn2.getYaw());
 			config.set("locations.spawn2.pitch", spawn2.getPitch());
 		}
+		this.saveConfig();
+		p.sendMessage("§3Spawn set.");
 	}
 }
