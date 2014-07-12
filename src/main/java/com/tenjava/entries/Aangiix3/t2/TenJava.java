@@ -28,8 +28,8 @@ public class TenJava extends JavaPlugin implements Listener {
 	private final Map<String, Long> timeouts = new HashMap<String, Long>();
 	private final Map<String, Long> tagged = new HashMap<String, Long>();
 	private ItemStack[] armorkit, invkit;
-	private String duelrequest, alreadyrequested, requestsent, requestaccepted, acceptedrequest;
-	private long timeout = 60000L;
+	private String duelrequest, alreadyrequested, requestsent, requestaccepted, acceptedrequest, cannotuseincombat;
+	private long timeout = 60000L, combattime = 6000L;
 	private boolean ownstuff = false, useincombat = false;
 
 	@Override
@@ -87,7 +87,9 @@ public class TenJava extends JavaPlugin implements Listener {
 			final Player p = e.getPlayer(), p2 = (Player) en;
 			final String pname = p.getName(), pname2 = p2.getName();
 			String opponent = requests.get(pname), opponent2 = requests.get(pname2);
-			if (pname == (opponent2 = opponent2 == null ? "" : opponent2)) { // Already requested
+			if (!useincombat && tagged.containsKey(pname) && tagged.get(pname) + combattime >= System.currentTimeMillis()) {
+				p.sendMessage(cannotuseincombat);
+			} else if (pname == (opponent2 = opponent2 == null ? "" : opponent2)) { // Already requested
 				p.sendMessage(alreadyrequested.replaceAll("%ply", pname2));
 			} else if (pname2 == (opponent = opponent == null ? "" : opponent)) { // Accept request
 				p.sendMessage(requestaccepted);
@@ -113,9 +115,11 @@ public class TenJava extends JavaPlugin implements Listener {
 		alreadyrequested = ChatColor.translateAlternateColorCodes('&', config.getString("messages.alreadyrequested"));
 		requestaccepted = ChatColor.translateAlternateColorCodes('&', config.getString("messages.requestaccepted"));
 		acceptedrequest = ChatColor.translateAlternateColorCodes('&', config.getString("messages.acceptedrequest"));
+		cannotuseincombat = ChatColor.translateAlternateColorCodes('&', config.getString("messages.cannotuseincombat"));
 		timeout = config.getInt("settings.timeout") * 60000L;
 		ownstuff = config.getBoolean("settings.ownstuff");
 		useincombat = config.getBoolean("settings.useincombat");
+		combattime = config.getInt("settings.combattime") * 1000L;
 		armorkit = new ItemStack[4];
 		short count = 0;
 		for (final String s : Arrays.asList("kit.armor.helmet", "kit.armor.chestplate", "kit.armor.leggings", "kit.armor.boots")) {

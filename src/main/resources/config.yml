@@ -23,12 +23,14 @@ kit:
         -
         - 
 settings:
-    # Set the timeout (in minutes)
+    # Set the request timeout (in minutes)
     timeout: 2
     # (false = kit | true = own stuff)
     ownstuff: false
     # Set duel use in combat
     useincombat: true
+    # Combat Time (in seconds)
+    combattime: 6
 mysql:
     url: jdbc:mysql://localhost:3306/database
     username: user
