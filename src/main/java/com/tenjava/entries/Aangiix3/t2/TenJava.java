@@ -207,7 +207,7 @@ public class TenJava extends JavaPlugin implements Listener {
 		equipPlayer(p);
 		equipPlayer(p2);
 		p.teleport(spawn1);
-		p.teleport(spawn2);
+		p2.teleport(spawn2);
 		for (final String s : runningduels.keySet()) { // Hide other duels
 			final Player pl = this.getServer().getPlayer(s);
 			p.hidePlayer(pl);
@@ -254,6 +254,13 @@ public class TenJava extends JavaPlugin implements Listener {
 		final Player p = this.getServer().getPlayer(d.getUUID()), p2 = this.getServer().getPlayer(d.getOpponent());
 		resetPlayer(p);
 		resetPlayer(p2);
+		for (final String s : runningduels.keySet()) {
+			final Player pl = this.getServer().getPlayer(s);
+			pl.showPlayer(p);
+			pl.showPlayer(p2);
+			p.showPlayer(pl);
+			p2.showPlayer(pl);
+		}
 		if (win) {
 			p.sendMessage(youlost);
 			p2.sendMessage(youwon);

@@ -33,9 +33,7 @@ kit:
         - 262 32
 winitems:
     # Will be ignored if (items: false)
-    -
-    -
-    -
+    - 264 5
 settings:
     # Set the request timeout (in minutes)
     timeout: 2
