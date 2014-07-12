@@ -43,11 +43,11 @@ public class TenJava extends JavaPlugin implements Listener {
 		if (en instanceof Player) {
 			final Player p = e.getPlayer(), p2 = (Player) en;
 			final String pname = p.getName(), pname2 = p2.getName();
-			String opponent = requests.get(pname2);
-			if (pname == (opponent = opponent == null ? "" : opponent)) { // Already clicked
+			String opponent = requests.get(pname), opponent2 = requests.get(pname2);
+			if (pname == (opponent2 = opponent2 == null ? "" : opponent2)) { // Already clicked
 				p.sendMessage(alreadyrequested.replaceAll("%ply", pname2));
 				return;
-			} else if (requests.containsValue(pname2) && opponent == pname) { // Already requested
+			} else if (pname2 == (opponent = opponent == null ? "" : opponent)) { // Already requested
 				p.sendMessage(requestaccepted);
 				p2.sendMessage(acceptedrequest.replaceAll("%ply", pname));
 				requests.remove(pname);

@@ -6,9 +6,9 @@ messages:
     # The message when a user sends a request twice
     alreadyrequested: 'You already sent %ply a request!'
     # The message when a request gets accepted
-    requestaccepted: '%ply accepted your request.'
+    requestaccepted: 'You accepted the duel request.'
     # The message when a user accepts a request
-    acceptedrequest: 'You accepted the duel request.'
+    acceptedrequest: '%ply accepted your request.'
     # More messages
 settings:
     # Set the timeout (in seconds)
