@@ -1,7 +1,9 @@
 package com.tenjava.entries.Aangiix3.t2;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.bukkit.ChatColor;
@@ -29,6 +31,7 @@ import org.bukkit.potion.PotionEffect;
 
 public class TenJava extends JavaPlugin implements Listener {
 	private MySQL db;
+	private final List<ItemStack> winitems = new ArrayList<ItemStack>();
 	private final Map<String, String> requests = new HashMap<String, String>();
 	private final Map<String, Long> timeouts = new HashMap<String, Long>();
 	private final Map<String, Long> tagged = new HashMap<String, Long>();
@@ -38,9 +41,9 @@ public class TenJava extends JavaPlugin implements Listener {
 	private final Map<String, Duel> runningduels = new HashMap<String, Duel>();
 	private ItemStack[] armorkit, invkit;
 	private Location spawn1, spawn2;
-	private String duelrequest, alreadyrequested, requestsent, requestaccepted, acceptedrequest, cannotuseincombat, alreadyinduel;
+	private String duelrequest, alreadyrequested, requestsent, requestaccepted, acceptedrequest, cannotuseincombat, alreadyinduel, youwon, youlost;
 	private long timeout = 60000L, combattime = 6000L;
-	private boolean ownstuff = false, useincombat = false;
+	private boolean ownstuff = false, useincombat = false, items = false;
 
 	@Override
 	public void onEnable() {
@@ -154,10 +157,13 @@ public class TenJava extends JavaPlugin implements Listener {
 		acceptedrequest = ChatColor.translateAlternateColorCodes('&', config.getString("messages.acceptedrequest"));
 		cannotuseincombat = ChatColor.translateAlternateColorCodes('&', config.getString("messages.cannotuseincombat"));
 		alreadyinduel = ChatColor.translateAlternateColorCodes('&', config.getString("messages.alreadyinduel"));
+		youwon = ChatColor.translateAlternateColorCodes('&', config.getString("messages.youwon"));
+		youlost = ChatColor.translateAlternateColorCodes('&', config.getString("messages.youlost"));
 		timeout = config.getInt("settings.timeout") * 60000L;
 		ownstuff = config.getBoolean("settings.ownstuff");
 		useincombat = config.getBoolean("settings.useincombat");
 		combattime = config.getInt("settings.combattime") * 1000L;
+		items = config.getBoolean("settings.items");
 		armorkit = new ItemStack[4];
 		short count = 3;
 		for (final String s : Arrays.asList("kit.armor.helmet", "kit.armor.chestplate", "kit.armor.leggings", "kit.armor.boots")) {
@@ -168,6 +174,9 @@ public class TenJava extends JavaPlugin implements Listener {
 		for (final String s : config.getStringList("kit.inventory")) {
 			count++;
 			invkit[count] = getItemStack(s);
+		}
+		for (final String s : config.getStringList("winitems")) {
+			winitems.add(getItemStack(s));
 		}
 		if (db != null) db.kill();
 		db = new MySQL(config.getString("mysql.url"), config.getString("mysql.username"), config.getString("mysql.password"));
@@ -246,7 +255,14 @@ public class TenJava extends JavaPlugin implements Listener {
 		resetPlayer(p);
 		resetPlayer(p2);
 		if (win) {
-			p2.getInventory().addItem(); // TODO: Win Items
+			p.sendMessage(youlost);
+			p2.sendMessage(youwon);
+			if (items) {
+				for (final ItemStack i : winitems) {
+					p2.getInventory().addItem(i);
+				}
+				p2.updateInventory();
+			}
 		}
 		return;
 	}

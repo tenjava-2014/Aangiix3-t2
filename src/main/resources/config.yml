@@ -13,9 +13,13 @@ messages:
     cannotuseincombat: 'You cannot duel while fighting.'
     # The message when a user is already in a duel
     alreadyinduel: 'You are already in a duel!'
+    # The message when a user lost the duel
+    youlost: 'You lost the duel!'
+    # The message when a user wins the duel
+    youwon: 'You won the duel!'
     # More messages
 kit:
-    # (Will be ignored if ownstuff: true)
+    # Will be ignored if (ownstuff: true)
     # Armor
     armor:
         helmet: 298 1
@@ -27,10 +31,11 @@ kit:
         - 272 1
         - 261 1
         - 262 32
-win:
-   -
-   -
-   -
+winitems:
+    # Will be ignored if (items: false)
+    -
+    -
+    -
 settings:
     # Set the request timeout (in minutes)
     timeout: 2
@@ -40,6 +45,8 @@ settings:
     useincombat: true
     # Combat Time (in seconds)
     combattime: 6
+    # Should you win items?
+    items: true
 mysql:
     # Used for Stats
     url: jdbc:mysql://localhost:3306/database
